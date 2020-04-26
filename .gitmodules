@@ -1,0 +1,3 @@
+[submodule "models/vecmap"]
+	path = models/vecmap
+	url = https://github.com/artetxem/vecmap
