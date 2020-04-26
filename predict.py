@@ -69,10 +69,10 @@ def predict(model_name="", dataset_dir="", limited=False, overwrite=False, filte
     elif model_name == "context-dependent":
 
         print("Making classification dataset ...")
-        make_classification_dataset(dataset_dir, experiment_dir)
+        # make_classification_dataset(dataset_dir, experiment_dir)
 
         print("Finetuning BERT ...")
-        finetune_bert(experiment_dir, limited, **params)
+        # finetune_bert(experiment_dir, limited, **params)
 
         print("Extracting representations ...")
         extract_representations(dataset_dir, experiment_dir, limited, **params)
