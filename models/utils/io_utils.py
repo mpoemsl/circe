@@ -1,7 +1,7 @@
 """ File operation utilities for LSCD models. """
 
-from src.utils.bert_utils import BinaryProcessor, convert_examples_to_features
-from src.utils.general_utils import mask_sent
+from models.utils.bert_utils import BinaryProcessor, convert_examples_to_features
+from models.utils.general_utils import mask_sent
 
 from transformers import BertConfig, BertForSequenceClassification, BertTokenizer
 from torch.utils.data import  TensorDataset
@@ -135,5 +135,4 @@ def load_rep_dict(rep_dir, targets):
             rep_dict[target] = np.random.random((2, 768))
 
     return rep_dict
-
 

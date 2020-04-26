@@ -1,10 +1,9 @@
-""" Utilities for working with BERT for sequence classification adopted from The Google AI Language Team Authors and The HuggingFace Inc. team. """
+""" Utilities for working with BERT for Sequence Classification; adopted from The Google AI Language Team Authors and The HuggingFace Inc. team. """
 
 from multiprocessing import Pool
 from tqdm import tqdm
 
 import numpy as np
-
 import csv
 import sys
 import io

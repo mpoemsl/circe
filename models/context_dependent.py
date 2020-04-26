@@ -1,6 +1,7 @@
+""" Model for unsupervised lexical semantic change ranking based on context-dependent word representations. """
 
-from src.utils.io_utils import make_masked_copy, load_dataset, load_pretrained_bert, load_local_bert, collect_sentences, load_rep_dict
-from src.utils.general_utils import find_first_seq_ics, apply2dicts, dict2array
+from models.utils.io_utils import make_masked_copy, load_dataset, load_pretrained_bert, load_local_bert, collect_sentences, load_rep_dict
+from models.utils.general_utils import find_first_seq_ics, apply2dicts, dict2array
 
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from transformers import AdamW, WarmupLinearSchedule
@@ -93,7 +94,7 @@ def finetune_bert(experiment_dir, limited, device="cpu", bert_name="bert-base-mu
 
     # evaluate bert model and save results
     acc = test_bert(test_dataset, model, tokenizer, device, **params)
-    np.save(bert_dir + "test_accuracy.npy", acc)
+    np.save(bert_dir + "classification_accuracy.npy", np.round(acc, decimals=2))
 
 
 def train_bert(train_dataset, model, tokenizer, device, n_epochs=1, batch_size=10, learning_rate=4e-5, warmup_ratio=0.05, **kwargs):
@@ -157,7 +158,6 @@ def test_bert(test_dataset, model, tokenizer, device, batch_size=10, **kwargs):
                       "labels":         batch[3]}
 
             logits = model(**inputs)[1]
-
 
         if preds is None:
             preds = logits.detach().cpu().numpy()
@@ -231,7 +231,7 @@ def get_hidden_from_sent(sent, model, tokenizer, device, max_sql=128):
     encoded = tokenizer.encode(sent, max_length=max_sql)
     padded = np.array([tokenizer.prepare_for_model(encoded)["input_ids"]])
     token_type_ids = np.zeros_like(padded)
-    attention_mask = (~(padded == token_type_ids)).astype(int)
+    attention_mask = (~(padded == 0)).astype(int)
 
     inputs = {
         "input_ids": torch.from_numpy(padded).to(device),
@@ -260,4 +260,3 @@ def compare_context_dependent_representations(dataset_dir, experiment_dir):
     
     pd.DataFrame({"word": targets, "change": dists}).to_csv(experiment_dir + "prediction.tsv", sep="\t", index=False, header=False)
     
-

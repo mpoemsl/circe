@@ -1,7 +1,7 @@
 """ General utilities for LSCD models. """
 
-
 import numpy as np
+
 
 def get_word_freqs(words):
     """ Returns dictionary frequency of word frequencies of words in a list. """
@@ -47,5 +47,4 @@ def mask_sent(sent, uniques):
     """ Replaces unique words with [MASK]. """
 
     return " ".join(["[MASK]" if word in uniques else word for word in sent.split()])
-
 
