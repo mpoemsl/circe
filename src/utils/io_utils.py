@@ -1,4 +1,4 @@
-""" Utilities to handle various file operations. """
+""" File operation utilities for LSCD models. """
 
 from src.utils.bert_utils import BinaryProcessor, convert_examples_to_features
 from src.utils.general_utils import mask_sent

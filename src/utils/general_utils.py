@@ -1,3 +1,5 @@
+""" General utilities for LSCD models. """
+
 
 import numpy as np
 

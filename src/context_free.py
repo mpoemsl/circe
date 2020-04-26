@@ -9,7 +9,7 @@ import word2vec
 import os
 
 
-def frequency_filter_texts(dataset_dir, experiment_dir):
+def preprocess_texts(dataset_dir, experiment_dir, filtered):
     """ Initializes frequency-filtering of texts for words with a minimum frequency. """
 
     with open(dataset_dir + "c1.txt", "r") as fh:
@@ -24,8 +24,8 @@ def frequency_filter_texts(dataset_dir, experiment_dir):
     prep_dir = experiment_dir + "preprocessed_texts/"
     os.makedirs(prep_dir, exist_ok=True)
 
-    frequency_filter_text(c1, targets, prep_dir + "c1.txt")
-    frequency_filter_text(c2, targets, prep_dir + "c2.txt")
+    preprocess_text(c1, targets, prep_dir + "c1.txt", filtered)
+    preprocess_text(c2, targets, prep_dir + "c2.txt", filtered)
 
 
 def train_word2vec(experiment_dir, n_window=10, n_negative=1, dim=300, **kwargs):
@@ -37,7 +37,10 @@ def train_word2vec(experiment_dir, n_window=10, n_negative=1, dim=300, **kwargs)
     prep_dir = experiment_dir +  "preprocessed_texts/"
 
     word2vec.word2vec(prep_dir + "c1.txt", vec_dir + "c1.vec", size=dim, negative=n_negative, window=n_window, cbow=0, binary=0, min_count=0, verbose=True)
+    print()
+
     word2vec.word2vec(prep_dir + "c2.txt", vec_dir + "c2.vec", size=dim, negative=n_negative, window=n_window, cbow=0, binary=0, min_count=0, verbose=True)
+    print()
 
 
 def align_embeddings(experiment_dir):
@@ -60,7 +63,6 @@ def align_embeddings(experiment_dir):
     
     subprocess.call(["python3", "src/vecmap/map_embeddings.py"] + args + files)
     
-    
 
 def compare_context_free_representations(dataset_dir, experiment_dir):
     """ Compares aligned embeddings for all target words and makes a prediction. """
@@ -78,28 +80,29 @@ def compare_context_free_representations(dataset_dir, experiment_dir):
     pd.DataFrame({"word": targets, "change": dists}).to_csv(experiment_dir + "prediction.tsv", sep="\t", index=False, header=False)
 
 
-def frequency_filter_text(text, targets, export_fp):
+def preprocess_text(text, targets, export_fp, filtered):
     """ Preprocesses a single text by filtering words for frequency and sentences for length. """
 
     lines = text.split("\n")
     all_words = text.split()
 
-    # determine words that will be kept
+    if filtered:
 
-    min_freq = len(lines) // 50_000 # in line with Schlechtweg et al. (2019)
-    word_freqs = get_word_freqs(all_words)
+        min_freq = len(lines) // 50_000 # in line with Schlechtweg et al. (2019)
+        word_freqs = get_word_freqs(all_words)
 
-    keep_words = set([word for word, freq in word_freqs.items() if freq >= min_freq])
-    target_words = set(targets)
+        keep_words = set([word for word, freq in word_freqs.items() if freq >= min_freq])
+        target_words = set(targets)
 
-    missing_targets = target_words - keep_words
+        missing_targets = target_words - keep_words
 
-    if len(missing_targets) > 0:
-        print("Keeping the following target words despite low frequencies:\n", missing_targets)
-        keep_words = keep_words.union(target_words)
+        if len(missing_targets) > 0:
+            print("Keeping the following target words despite low frequencies:\n", missing_targets)
+            keep_words = keep_words.union(target_words)
 
-
-    # construct new text from keep_words only
+    else: 
+    
+        keep_words = set(all_words)
 
     new_lines = []
 

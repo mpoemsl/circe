@@ -2,8 +2,7 @@
 from src.utils.io_utils import make_masked_copy, load_dataset, load_pretrained_bert, load_local_bert, collect_sentences, load_rep_dict
 from src.utils.general_utils import find_first_seq_ics, apply2dicts, dict2array
 
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
-from transformers import BertConfig, BertForSequenceClassification, BertTokenizer
+from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from transformers import AdamW, WarmupLinearSchedule
 from scipy.spatial.distance import cdist
 from tqdm import tqdm
@@ -195,8 +194,8 @@ def extract_representations(dataset_dir, experiment_dir, limited, device="cpu", 
     model.eval()
 
     if limited:
-        sents_c1 = {key: value[:10] for key, value in sents_c1.items()}
-        sents_c2 = {key: value[:10] for key, value in sents_c2.items()}
+        sents_c1 = {key: value[:40] for key, value in sents_c1.items()}
+        sents_c2 = {key: value[:40] for key, value in sents_c2.items()}
 
     save_representations(sents_c1, model, tokenizer, device, rep_dir_c1)
     save_representations(sents_c2, model, tokenizer, device, rep_dir_c2)

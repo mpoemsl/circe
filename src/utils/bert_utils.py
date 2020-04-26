@@ -1,4 +1,4 @@
-"""Utilities for working with BERT for sequence classification adopted from The Google AI Language Team Authors and The HuggingFace Inc. team."""
+""" Utilities for working with BERT for sequence classification adopted from The Google AI Language Team Authors and The HuggingFace Inc. team. """
 
 from multiprocessing import Pool
 from tqdm import tqdm

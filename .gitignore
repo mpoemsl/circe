@@ -1,3 +1,7 @@
+# Large and temporary files
+experiments/
+datasets/*/*.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -1,7 +1,7 @@
 """ Script to make a prediction of lexical semantic change of given target words between two corpora. """
 
 from src.context_dependent import make_classification_dataset, finetune_bert, extract_representations, compare_context_dependent_representations 
-from src.context_free import frequency_filter_texts, train_word2vec, align_embeddings, compare_context_free_representations
+from src.context_free import preprocess_texts, train_word2vec, align_embeddings, compare_context_free_representations
 
 import argparse
 import os
@@ -12,7 +12,8 @@ parser.add_argument("model_name", type=str, help="Model to use for prediction: O
 parser.add_argument("dataset_dir", type=str, help="Path to folder where the dataset is stored; must contain c1.txt, c2.txt and targets.tsv")
 
 parser.add_argument("--limited", dest="limited", action="store_true", help="Sentence limit to restrict computing time")
-parser.add_argument("--unmasked", dest="masked", action="store_false", help="Don't mask training data")
+parser.add_argument("--unmasked", dest="masked", action="store_false", help="Don't mask BERT training data")
+parser.add_argument("--unfiltered", dest="filtered", action="store_false", help="Don't filter word frequencies for Word2Vec")
 parser.add_argument("--overwrite", dest="overwrite", action="store_true", help="Overwrite existing experiment folder and prediction")
 
 parser.add_argument("--bert_name", type=str, default="bert-base-multilingual-cased", help="Name of the BERT model to use")
@@ -27,7 +28,7 @@ parser.add_argument("--n_negative", type=int, default=1, help="Word2vec negative
 parser.add_argument("--dim", type=int, default=300, help="Word2vec vector dimension")
 
 
-def predict(model_name="context-free", dataset_dir="datasets/en-semeval/", limited=False, overwrite=False, **params):
+def predict(model_name="", dataset_dir="", limited=False, overwrite=False, filtered=True, **params):
     """ Predicts lexical semantic change ranking for a dataset with a context-free or contex-dependent model. """
 
     assert os.path.exists(dataset_dir), "Folder '{}' does not exist!".format(dataset_dir)
@@ -54,8 +55,8 @@ def predict(model_name="context-free", dataset_dir="datasets/en-semeval/", limit
 
     if model_name == "context-free":
         
-        print("Frequency-filtering texts ...")
-        frequency_filter_texts(dataset_dir, experiment_dir)
+        print("Preprocessing texts ...")
+        preprocess_texts(dataset_dir, experiment_dir, filtered)
 
         print("Training Word2Vec ...")
         train_word2vec(experiment_dir, **params)
