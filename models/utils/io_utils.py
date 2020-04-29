@@ -26,13 +26,13 @@ def load_vector_dict(vec_fp, words):
         tokens = line.rstrip().split(" ")
 
         if tokens[0] in words:
+s
             vdict[tokens[0]] = np.array(tokens[1:], dtype=float)
 
             if len(vdict) == len(words):
                 break
 
-    if len(vdict) != len(words):
-        print("Caution! Not all words were found.")
+    assert len(vdict) == len(words), "Not all target words were found in the *.vec file {}!".format(vec_fp)
 
     return vdict
 
@@ -57,7 +57,7 @@ def make_masked_copy(filepath):
 
 
 def load_dataset(tokenizer, bert_name, filepath, max_sents=-1, max_sql=128):
-    """ Loads a data set for a BERT model. """
+    """ Loads and prepares a local dataset for a BERT model. """
 
     set_type = filepath.split("/")[-1][:-4]
 
@@ -92,24 +92,26 @@ def load_local_bert(bert_dir, device, output_hidden_states=False):
 
     tokenizer = BertTokenizer.from_pretrained(bert_dir)
     model = BertForSequenceClassification.from_pretrained(bert_dir, output_hidden_states=output_hidden_states)
+
     model.to(device)
 
     return tokenizer, model
 
 
 def load_pretrained_bert(bert_name, device):
-    """ Loads a pretrained BERT model from cloud storage. """
+    """ Loads a pretrained BERT model from cloud storage for binary classification finetuning. """
 
     config = BertConfig.from_pretrained(bert_name, num_labels=2, finetuning_task="binary")
     tokenizer = BertTokenizer.from_pretrained(bert_name)
     model = BertForSequenceClassification.from_pretrained(bert_name, config=config)
+
     model.to(device)
 
     return tokenizer, model
 
 
 def collect_sentences(words, sents_fp):
-    """ Collects all sentences containing given words from a corpus. """
+    """ Collects all sentences containing words from a corpus. """
 
     with open(sents_fp, "r") as fh:
         lines = fh.read().split("\n")
@@ -125,14 +127,14 @@ def collect_sentences(words, sents_fp):
 
 
 def load_rep_dict(rep_dir, targets):
-    """ Utility to load word distribution from a directory of .npy files into a dictionary. """
+    """ Loads word representations from a directory of *.npy files into a dictionary. """
 
     rep_dict = {}
 
     for target in targets:
+
         rep_dict[target] = np.load(rep_dir + target + ".npy")
-        if rep_dict[target].size == 0:
-            rep_dict[target] = np.random.random((2, 768))
+        assert rep_dict[target].size > 0, "No representations saved for word '{}' - check both corpora for occurrences!".format(target)
 
     return rep_dict
 

@@ -1,5 +1,6 @@
-""" Script to make an ensemble prediction from two predicted of lexical semantic change ranks. """
+""" Ensembles context-free and context-dependent LSCD predictions made with predict.py. """
 
+# only used for visualizations
 from scipy.stats import spearmanr
 
 import matplotlib.pyplot as plt
@@ -9,17 +10,17 @@ import argparse
 import os
 
 
-parser = argparse.ArgumentParser(description="Ensemble a context-free and a context-dependent lexical semantic change ranking.")
+parser = argparse.ArgumentParser(description="Ensembles context-free and context-dependent LSCD predictions made with predict.py.")
 
 parser.add_argument("context_free_dir", type=str, help="Context-free experiment folder")
 parser.add_argument("context_dependent_dir", type=str, help="Context-dependent experiment folder")
-
 parser.add_argument("--plot_all", dest="plot_all", action="store_true", help="Plots and evaluates all possible weights")
 
 
 def ensemble(dataset_dir="", context_free_dir="", context_dependent_dir="", plot_all=False):
     """ Ensembles a context-free and a context-dependent lexical semantic change ranking. """
 
+    # organisational data and directory checks
 
     if not context_free_dir.endswith("/"):
         context_free_dir += "/"
@@ -41,6 +42,8 @@ def ensemble(dataset_dir="", context_free_dir="", context_dependent_dir="", plot
     os.makedirs(experiment_dir, exist_ok=True)
     print("Experiment data will be stored in {} ...".format(experiment_dir))
 
+    # ensemble experiment execution
+
     cf_pred_df = pd.read_csv(context_free_dir + "prediction.tsv", sep="\t", names=["word", "change"], header=None).sort_values("word")
     cd_pred_df = pd.read_csv(context_dependent_dir + "prediction.tsv", sep="\t", names=["word", "change"], header=None).sort_values("word")
     assert np.all(cf_pred_df.word.values == cd_pred_df.word.values), "Predictions do not correspond to the same target words!"
@@ -59,6 +62,8 @@ def ensemble(dataset_dir="", context_free_dir="", context_dependent_dir="", plot
 
     print("Finished ensembling. Prediction can be found in {}.".format(experiment_dir + "prediction.tsv"))
         
+    # visualization    
+
     if plot_all:
 
         print("Plotting all possible weights ...")
@@ -71,7 +76,7 @@ def ensemble(dataset_dir="", context_free_dir="", context_dependent_dir="", plot
 
         y = y_df.change.values
 
-        # value space of w_circe = 2.0 * acc_bert - 1.0 since acc_bert is limited to 2 decimals
+        # value space of w_circe = 2.0 * acc_bert - 1.0 contains 51 weigths since acc_bert is rounded to 2 decimals
         weights = np.linspace(0.0, 1.0, 51)
 
         correlations = []
@@ -84,7 +89,6 @@ def ensemble(dataset_dir="", context_free_dir="", context_dependent_dir="", plot
             correlations.append(corr)
 
         visualize_weights(weights, correlations, w_circe, experiment_dir.split("/")[-2], experiment_dir + "all_weights.png")
-
 
 
 def visualize_weights(weights, correlations, w_circe, experiment_name, export_fp):
@@ -112,10 +116,10 @@ def visualize_weights(weights, correlations, w_circe, experiment_name, export_fp
     plt.savefig(export_fp)
     plt.show()
 
-    
 
 if __name__ == "__main__":
 
     args = parser.parse_args()
     params = vars(args)
     ensemble(**params)
+

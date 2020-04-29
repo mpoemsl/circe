@@ -11,7 +11,7 @@ import os
 
 
 def preprocess_texts(dataset_dir, experiment_dir, filtered):
-    """ Initializes frequency-filtering of texts for words with a minimum frequency. """
+    """ Removes words below the frequency threshold in both corpora. """
 
     with open(dataset_dir + "c1.txt", "r") as fh:
         c1 = fh.read()
@@ -37,7 +37,9 @@ def preprocess_text(text, targets, export_fp, filtered):
 
     if filtered:
 
-        min_freq = len(lines) // 50_000 # in line with Schlechtweg et al. (2019)
+        # determine threshold
+        min_freq = len(lines) // 50_000
+
         word_freqs = get_word_freqs(all_words)
 
         keep_words = set([word for word, freq in word_freqs.items() if freq >= min_freq])
@@ -46,7 +48,7 @@ def preprocess_text(text, targets, export_fp, filtered):
         missing_targets = target_words - keep_words
 
         if len(missing_targets) > 0:
-            print("Keeping the following target words despite low frequencies:\n", missing_targets)
+            print("Keeping the following target words despite frequencies below {}:\n".format(min_freq), missing_targets)
             keep_words = keep_words.union(target_words)
 
     else: 
@@ -67,7 +69,7 @@ def preprocess_text(text, targets, export_fp, filtered):
 
 
 def train_word2vec(experiment_dir, n_window=10, n_negative=1, dim=300, **kwargs):
-    """ Vectorizes all words in the two corpora separately with word2vec. """
+    """ Vectorizes all words in the two corpora separately with Word2Vec. """
 
     vec_dir = experiment_dir + "word_representations/"
     os.makedirs(vec_dir, exist_ok=True)

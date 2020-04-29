@@ -16,7 +16,7 @@ wget -O datasets/de-surel/c2.txt.gz https://www.ims.uni-stuttgart.de/documents/r
 gunzip datasets/de-durel/c1.txt.gz
 gunzip datasets/de-durel/c2.txt.gz
 
-# unzip and concatenate de-surel 
+# unzip and preprocess de-surel 
 
 gunzip datasets/de-surel/c1_1.txt.gz
 gunzip datasets/de-surel/c1_2.txt.gz

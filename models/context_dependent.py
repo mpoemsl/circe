@@ -31,7 +31,7 @@ def make_classification_dataset(dataset_dir, experiment_dir):
     n_train = int(n_samples_per_class * 2 * 0.8)
     n_test = n_samples_per_class * 2 - n_train
 
-    # collect all samples in DataFrames
+    # collect samples for each class
     df_0 = pd.DataFrame({"text": sents_c1, "label": 0}).sample(n=n_samples_per_class, replace=False)
     df_1 = pd.DataFrame({"text": sents_c2, "label": 1}).sample(n=n_samples_per_class, replace=False)
 
@@ -202,7 +202,7 @@ def extract_representations(dataset_dir, experiment_dir, limited, device="cpu", 
 
 
 def save_representations(word_sents, model, tokenizer, device, rep_dir):
-    """ Saves representations extracted from a number of sentences in a given folder. """
+    """ Saves representations extracted from BERT for sentences in a given folder. """
 
     for word, sents in word_sents.items():
 
@@ -226,7 +226,7 @@ def save_representations(word_sents, model, tokenizer, device, rep_dir):
 
 
 def get_hidden_from_sent(sent, model, tokenizer, device, max_sql=128):
-    """ Returns a tokenized sentence and its last hidden layer matrix of a BERT model with dimensions (layers, heads, tokens, tokens). """
+    """ Returns BERT last layer activations with shape (layers, heads, tokens, tokens) and the encoded sentence. """
 
     encoded = tokenizer.encode(sent, max_length=max_sql)
     padded = np.array([tokenizer.prepare_for_model(encoded)["input_ids"]])
@@ -242,6 +242,7 @@ def get_hidden_from_sent(sent, model, tokenizer, device, max_sql=128):
 
     hidden_matrix = np.vstack([v.cpu().detach().numpy() for v in model(**inputs)[-1]])
 
+    # attention mask is used to exclude padding 0s at the end
     return hidden_matrix[:, :attention_mask.sum(), :], np.array(encoded)
 
 

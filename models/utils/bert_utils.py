@@ -1,4 +1,4 @@
-""" Utilities for working with BERT for Sequence Classification; adopted from The Google AI Language Team Authors and The HuggingFace Inc. team. """
+""" BERT Utilities adopted from The Google AI Language Team Authors and The HuggingFace Inc. team. """
 
 from multiprocessing import Pool
 from tqdm import tqdm
@@ -29,12 +29,12 @@ class DataProcessor(object):
                     if ix == lim:
                         break
                     if sys.version_info[0] == 2:
-                        line = list(unicode(cell, 'utf-8') for cell in line)
+                        line = list(unicode(cell, "utf-8") for cell in line)
                     lines.append(line)
             else:
                 for line in reader:
                     if sys.version_info[0] == 2:
-                        line = list(unicode(cell, 'utf-8') for cell in line)
+                        line = list(unicode(cell, "utf-8") for cell in line)
                     lines.append(line)
 
             return lines

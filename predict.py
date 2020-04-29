@@ -1,4 +1,4 @@
-""" Script to make a prediction of lexical semantic change of given target words between two corpora. """
+""" Predicts lexical semantic change ranking for a dataset with the context-free or context-dependent model. """
 
 from models.context_dependent import make_classification_dataset, finetune_bert, extract_representations, compare_context_dependent_representations 
 from models.context_free import preprocess_texts, train_word2vec, align_embeddings, compare_context_free_representations
@@ -6,31 +6,37 @@ from models.context_free import preprocess_texts, train_word2vec, align_embeddin
 import argparse
 import os
 
-parser = argparse.ArgumentParser(description="Predict lexical semantic change ranking for a dataset with context-free or context-dependent model.")
 
-parser.add_argument("model_name", type=str, help="Model to use for prediction: One of 'context-free', 'context-dependent'")
-parser.add_argument("dataset_dir", type=str, help="Path to folder where the dataset is stored; must contain c1.txt, c2.txt and targets.tsv")
-parser.add_argument("--overwrite", dest="overwrite", action="store_true", help="Overwrite existing experiment folder")
+parser = argparse.ArgumentParser(description="Predicts lexical semantic change ranking for a dataset with the context-free or context-dependent model.")
 
-parser.add_argument("--limited", dest="limited", action="store_true", help="Sentence limit to restrict computing time")
-parser.add_argument("--unmasked", dest="masked", action="store_false", help="Don't mask BERT training data")
-parser.add_argument("--bert_name", type=str, default="bert-base-multilingual-cased", help="Name of the BERT model to use")
-parser.add_argument("--device", type=str, default="cpu", help="Name of device to train BERT model on")
-parser.add_argument("--batch_size", type=int, default=10, help="Batch size for BERT training")
-parser.add_argument("--n_epochs", type=int, default=1, help="Number of epochs of BERT training")
-parser.add_argument("--warmup_ratio", type=float, default=0.05, help="Ratio of warmup steps in BERT training")
-parser.add_argument("--learning_rate", type=float, default=4e-5, help="Learning rate for BERT training")
+# general arguments
+parser.add_argument("model_name", type=str, help="Model to use for prediction: One of {context-free, context-dependent}")
+parser.add_argument("dataset_dir", type=str, help="Path to folder where the dataset is stored (must contain c1.txt, c2.txt and targets.tsv)")
+parser.add_argument("--overwrite", dest="overwrite", action="store_true", help="Overwrite experiment folder if it already exists")
 
-parser.add_argument("--unfiltered", dest="filtered", action="store_false", help="Don't filter word frequencies for Word2Vec")
+# context-free model arguments
+parser.add_argument("--unfiltered", dest="filtered", action="store_false", help="Do not employ word frequenciy filtering")
+parser.add_argument("--dim", type=int, default=300, help="Word2vec vector dimension")
 parser.add_argument("--n_window", type=int, default=10, help="Word2vec window size")
 parser.add_argument("--n_negative", type=int, default=1, help="Word2vec negative samples")
-parser.add_argument("--dim", type=int, default=300, help="Word2vec vector dimension")
+
+# context-dependent model arguments
+parser.add_argument("--limited", dest="limited", action="store_true", help="Sentence limit to restrict computing time")
+parser.add_argument("--unmasked", dest="masked", action="store_false", help="Do not mask BERT training data")
+parser.add_argument("--device", type=str, default="cpu", help="Name of device to train BERT model on: Usually one of {cpu, cuda}")
+parser.add_argument("--n_epochs", type=int, default=1, help="Number of epochs for BERT training")
+parser.add_argument("--bert_name", type=str, default="bert-base-multilingual-cased", help="Name of the pretrained BERT model to use")
+parser.add_argument("--batch_size", type=int, default=10, help="Batch size for BERT training")
+parser.add_argument("--warmup_ratio", type=float, default=0.05, help="Ratio of warmup steps for BERT training")
+parser.add_argument("--learning_rate", type=float, default=4e-5, help="Learning rate for BERT training")
 
 
 def predict(model_name="", dataset_dir="", limited=False, overwrite=False, filtered=True, **params):
-    """ Predicts lexical semantic change ranking for a dataset with a context-free or contex-dependent model. """
+    """ Predicts lexical semantic change ranking for a dataset with the context-free or the context-dependent model. """
 
-    assert os.path.exists(dataset_dir), "Folder '{}' does not exist!".format(dataset_dir)
+    # organisational data and directory checks
+
+    assert os.path.exists(dataset_dir), "Folder {} does not exist!".format(dataset_dir)
 
     if not dataset_dir.endswith("/"):
         dataset_dir += "/"
@@ -52,6 +58,8 @@ def predict(model_name="", dataset_dir="", limited=False, overwrite=False, filte
 
     print("Experiment data will be stored in {} ...".format(experiment_dir))
 
+    # prediction experiment execution
+
     if model_name == "context-free":
         
         print("Preprocessing texts ...")
@@ -69,10 +77,10 @@ def predict(model_name="", dataset_dir="", limited=False, overwrite=False, filte
     elif model_name == "context-dependent":
 
         print("Making classification dataset ...")
-        # make_classification_dataset(dataset_dir, experiment_dir)
+        make_classification_dataset(dataset_dir, experiment_dir)
 
         print("Finetuning BERT ...")
-        # finetune_bert(experiment_dir, limited, **params)
+        finetune_bert(experiment_dir, limited, **params)
 
         print("Extracting representations ...")
         extract_representations(dataset_dir, experiment_dir, limited, **params)
@@ -81,6 +89,7 @@ def predict(model_name="", dataset_dir="", limited=False, overwrite=False, filte
         compare_context_dependent_representations(dataset_dir, experiment_dir)
 
     else:
+
         raise Exception("'{}' is not a valid model name.".format(model_name))
 
     print("Finished experiment. Prediction can be found in {}.".format(experiment_dir + "prediction.tsv"))
