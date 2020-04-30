@@ -16,7 +16,7 @@ class DataProcessor(object):
     """ Base class for data converters for sequence classification data sets. """
 
     @classmethod
-    def _read_tsv(cls, input_file, lim):
+    def _read_tsv(cls, input_file):
         """ Reads a tab separated value file. """
 
         with io.open(input_file, "r", encoding="utf-8-sig") as fh:
@@ -24,18 +24,10 @@ class DataProcessor(object):
             reader = csv.reader(fh, delimiter="\t", quotechar=None)
             lines = []
 
-            if lim > 0:
-                for ix, line in enumerate(reader):
-                    if ix == lim:
-                        break
-                    if sys.version_info[0] == 2:
-                        line = list(unicode(cell, "utf-8") for cell in line)
-                    lines.append(line)
-            else:
-                for line in reader:
-                    if sys.version_info[0] == 2:
-                        line = list(unicode(cell, "utf-8") for cell in line)
-                    lines.append(line)
+            for line in reader:
+                if sys.version_info[0] == 2:
+                    line = list(unicode(cell, "utf-8") for cell in line)
+                lines.append(line)
 
             return lines
 
@@ -43,9 +35,9 @@ class DataProcessor(object):
 class BinaryProcessor(DataProcessor):
     """ Processor for the binary data sets. """
 
-    def get_examples(self, filepath, set_type, lim=-1):
+    def get_examples(self, filepath, set_type):
 
-        return self._create_examples(self._read_tsv(filepath, lim), set_type)
+        return self._create_examples(self._read_tsv(filepath), set_type)
 
     def get_labels(self):
 
@@ -121,8 +113,7 @@ def convert_examples_to_features(examples, label_list, max_seq_length,
     return features
 
 
-def convert_example_to_feature(example_row, pad_token=0, sequence_a_segment_id=0, sequence_b_segment_id=1, cls_token_segment_id=1, pad_token_segment_id=0,  
-        mask_padding_with_zero=True, sep_token_extra=False):
+def convert_example_to_feature(example_row, pad_token=0, sequence_a_segment_id=0, sequence_b_segment_id=1, cls_token_segment_id=1, pad_token_segment_id=0,  mask_padding_with_zero=True, sep_token_extra=False):
     """ Converts an example to a BERT feature. """
 
     example, label_map, max_seq_length, tokenizer, cls_token_at_end, cls_token, sep_token, cls_token_segment_id, pad_on_left, pad_token_segment_id, sep_token_extra, to_mask = example_row

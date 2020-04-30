@@ -1,6 +1,6 @@
 # CIRCE
 
-A **C**lassification-**I**nformed **R**epresentation **C**omparison **E**nsemble for Lexical Semantic Change Detection (LSCD).  
+A Classification-Informed Representation Comparison Ensemble for Lexical Semantic Change Detection (LSCD).  
 
 This repository contains code and predictions for the winning contribution to SemEval-2020 Task 1 (Subtask 2). 
 

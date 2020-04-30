@@ -26,7 +26,7 @@ def load_vector_dict(vec_fp, words):
         tokens = line.rstrip().split(" ")
 
         if tokens[0] in words:
-s
+
             vdict[tokens[0]] = np.array(tokens[1:], dtype=float)
 
             if len(vdict) == len(words):
@@ -56,7 +56,7 @@ def make_masked_copy(filepath):
     df.to_csv(new_fp, sep="\t", index=False, header=False)
 
 
-def load_dataset(tokenizer, bert_name, filepath, max_sents=-1, max_sql=128):
+def load_dataset(tokenizer, bert_name, filepath, max_sql=128):
     """ Loads and prepares a local dataset for a BERT model. """
 
     set_type = filepath.split("/")[-1][:-4]
@@ -64,7 +64,7 @@ def load_dataset(tokenizer, bert_name, filepath, max_sents=-1, max_sql=128):
     processor = BinaryProcessor()
 
     label_list = processor.get_labels()
-    examples = processor.get_examples(filepath, set_type, lim=max_sents)
+    examples = processor.get_examples(filepath, set_type)
 
     features = convert_examples_to_features(examples, label_list, max_sql,
         tokenizer,

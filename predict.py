@@ -21,7 +21,6 @@ parser.add_argument("--n_window", type=int, default=10, help="Word2vec window si
 parser.add_argument("--n_negative", type=int, default=1, help="Word2vec negative samples")
 
 # context-dependent model arguments
-parser.add_argument("--limited", dest="limited", action="store_true", help="Sentence limit to restrict computing time")
 parser.add_argument("--unmasked", dest="masked", action="store_false", help="Do not mask BERT training data")
 parser.add_argument("--device", type=str, default="cpu", help="Name of device to train BERT model on: Usually one of {cpu, cuda}")
 parser.add_argument("--n_epochs", type=int, default=1, help="Number of epochs for BERT training")
@@ -31,7 +30,7 @@ parser.add_argument("--warmup_ratio", type=float, default=0.05, help="Ratio of w
 parser.add_argument("--learning_rate", type=float, default=4e-5, help="Learning rate for BERT training")
 
 
-def predict(model_name="", dataset_dir="", limited=False, overwrite=False, filtered=True, **params):
+def predict(model_name="", dataset_dir="", overwrite=False, filtered=True, **params):
     """ Predicts lexical semantic change ranking for a dataset with the context-free or the context-dependent model. """
 
     # organisational data and directory checks
@@ -80,10 +79,10 @@ def predict(model_name="", dataset_dir="", limited=False, overwrite=False, filte
         make_classification_dataset(dataset_dir, experiment_dir)
 
         print("Finetuning BERT ...")
-        finetune_bert(experiment_dir, limited, **params)
+        finetune_bert(experiment_dir, **params)
 
         print("Extracting representations ...")
-        extract_representations(dataset_dir, experiment_dir, limited, **params)
+        extract_representations(dataset_dir, experiment_dir, **params)
 
         print("Comparing context-dependent representations ...")
         compare_context_dependent_representations(dataset_dir, experiment_dir)

@@ -27,7 +27,7 @@ def make_classification_dataset(dataset_dir, experiment_dir):
         sents_c2 = fh.read().splitlines()
 
     # detemine thresholds
-    n_samples_per_class = (min(len(sents_c1), len(sents_c2)) // 1_000) * 1_000 # ensure round number
+    n_samples_per_class = np.around(min(len(sents_c1), len(sents_c2)), decimals=-3)
     n_train = int(n_samples_per_class * 2 * 0.8)
     n_test = n_samples_per_class * 2 - n_train
 
@@ -47,10 +47,12 @@ def make_classification_dataset(dataset_dir, experiment_dir):
     train_df = train_df.sample(frac=1)
     test_df = test_df.sample(frac=1)
 
-    # eliminate this stuff later in data processor
-
     for df in [train_df, test_df]:
+        
+        # remove year that is at beginning of sentence in some datasets
         df["text"] = df["text"].str.rsplit("\t", expand=True)[0]
+
+        # create dummy columns to conform with BERT dataset format
         df["alpha"] = ["a"] * len(df.index)
         df["id"] = range(len(df.index))
 
@@ -61,27 +63,24 @@ def make_classification_dataset(dataset_dir, experiment_dir):
     make_masked_copy(prep_dir + "test.tsv")
 
 
-def finetune_bert(experiment_dir, limited, device="cpu", bert_name="bert-base-multilingual-cased", masked=True, **params):
+def finetune_bert(experiment_dir, device="cpu", bert_name="bert-base-multilingual-cased", masked=True, **params):
     """ Finetunes a pretrained BERT model on a sentence time classification objective. """
 
     bert_dir = experiment_dir + "bert/"
     os.makedirs(bert_dir, exist_ok=True)
 
     device = torch.device(device)
+
+    print("Loading pretrained BERT model ...")
     tokenizer, model = load_pretrained_bert(bert_name, device)
 
     if masked:
         train_fp = experiment_dir + "preprocessed_texts/train_masked.tsv"
     else:
         train_fp = experiment_dir + "preprocessed_texts/train.tsv"
-
-    if limited:
-        max_sents = 100
-    else:
-        max_sents = -1
         
     # train bert model
-    train_dataset = load_dataset(tokenizer, bert_name, train_fp, max_sents=max_sents)
+    train_dataset = load_dataset(tokenizer, bert_name, train_fp)
     train_bert(train_dataset, model, tokenizer, device, **params)
 
     # save bert model
@@ -90,7 +89,7 @@ def finetune_bert(experiment_dir, limited, device="cpu", bert_name="bert-base-mu
 
     # reload bert model and test dataset
     tokenizer, model = load_local_bert(bert_dir, device)
-    test_dataset = load_dataset(tokenizer, bert_name, experiment_dir + "preprocessed_texts/train.tsv", max_sents=max_sents)
+    test_dataset = load_dataset(tokenizer, bert_name, experiment_dir + "preprocessed_texts/train.tsv")
 
     # evaluate bert model and save results
     acc = test_bert(test_dataset, model, tokenizer, device, **params)
@@ -172,7 +171,7 @@ def test_bert(test_dataset, model, tokenizer, device, batch_size=10, **kwargs):
     return accuracy
 
 
-def extract_representations(dataset_dir, experiment_dir, limited, device="cpu", **kwargs):
+def extract_representations(dataset_dir, experiment_dir, device="cpu", **kwargs):
     """ Extracts last hidden layer values for all target words in a datasets."""
 
     rep_dir_c1 = experiment_dir + "word_representations/c1/"
@@ -193,15 +192,11 @@ def extract_representations(dataset_dir, experiment_dir, limited, device="cpu", 
     tokenizer, model = load_local_bert(bert_dir, device, output_hidden_states=True)
     model.eval()
 
-    if limited:
-        sents_c1 = {key: value[:40] for key, value in sents_c1.items()}
-        sents_c2 = {key: value[:40] for key, value in sents_c2.items()}
-
     save_representations(sents_c1, model, tokenizer, device, rep_dir_c1)
     save_representations(sents_c2, model, tokenizer, device, rep_dir_c2)
 
 
-def save_representations(word_sents, model, tokenizer, device, rep_dir):
+def save_representations(word_sents, model, tokenizer, device, rep_dir, max_sql=128):
     """ Saves representations extracted from BERT for sentences in a given folder. """
 
     for word, sents in word_sents.items():
@@ -211,7 +206,7 @@ def save_representations(word_sents, model, tokenizer, device, rep_dir):
 
         for sent in tqdm(sents, desc="Extracting Representations for '{}'".format(word)):
 
-            hidden_states, encoded = get_hidden_from_sent(sent, model, tokenizer, device)
+            hidden_states, encoded = get_hidden_from_sent(sent, model, tokenizer, device, max_sql)
 
             if len(word_tokens) > 0:
                 word_token_ics = find_first_seq_ics(encoded, word_tokens)
@@ -225,25 +220,28 @@ def save_representations(word_sents, model, tokenizer, device, rep_dir):
         np.save(rep_dir + word + ".npy", np.array(word_hidden_states))
 
 
-def get_hidden_from_sent(sent, model, tokenizer, device, max_sql=128):
-    """ Returns BERT last layer activations with shape (layers, heads, tokens, tokens) and the encoded sentence. """
+def get_hidden_from_sent(sent, model, tokenizer, device, max_sql):
+    """ Returns BERT last layer activations with shape (layers, tokens, hidden_size) as well as the encoded sentence. """
 
-    encoded = tokenizer.encode(sent, max_length=max_sql)
-    padded = np.array([tokenizer.prepare_for_model(encoded)["input_ids"]])
+    tokenized = [tokenizer.cls_token] + tokenizer.tokenize(sent)[:(max_sql - 2)] + [tokenizer.sep_token]
+    encoded = tokenizer.convert_tokens_to_ids(tokenized)
+    padded = np.array(encoded + [tokenizer.pad_token_id] * (max_sql - len(encoded))).reshape(1, -1)
+
     token_type_ids = np.zeros_like(padded)
-    attention_mask = (~(padded == 0)).astype(int)
+    attention_mask = (~(padded == tokenizer.pad_token_id)).astype(int)
+    labels = np.array([1]).astype(int)
 
     inputs = {
         "input_ids": torch.from_numpy(padded).to(device),
         "attention_mask": torch.from_numpy(attention_mask).to(device),
         "token_type_ids": torch.from_numpy(token_type_ids).to(device),
-        "labels": torch.from_numpy(np.array([1]).astype(int)).to(device)
+        "labels": torch.from_numpy(labels).to(device)
     }
 
+    # last entry of model output is hidden layer matrix
     hidden_matrix = np.vstack([v.cpu().detach().numpy() for v in model(**inputs)[-1]])
 
-    # attention mask is used to exclude padding 0s at the end
-    return hidden_matrix[:, :attention_mask.sum(), :], np.array(encoded)
+    return hidden_matrix[:, :len(encoded), :], np.array(encoded)
 
 
 def compare_context_dependent_representations(dataset_dir, experiment_dir):
