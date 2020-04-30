@@ -1,6 +1,6 @@
 # CIRCE
 
-A **C**lassification-**I**nformed **R**epresentation **C**omparison **E**nsemble for Lexical Semantic Change Detection.  
+A **C**lassification-**I**nformed **R**epresentation **C**omparison **E**nsemble for Lexical Semantic Change Detection (LSCD).  
 
 This repository contains code and predictions for the winning contribution to SemEval-2020 Task 1 (Subtask 2). 
 
@@ -18,7 +18,7 @@ Models, experiments and results are described in the upcoming system description
 
 ## Requirements
 
-This system runs on Python 3.6. The required packages can best be installed with `pip install -r requirements.txt`.
+This system runs on Python 3.6. The required packages can best be installed with `pip install -r requirements.txt`. It might be necessary to install Cython separately, you can do this with `pip install Cython==0.29.14`.
 
 Additionally, you need to clone the [VecMap](https://github.com/artetxem/vecmap) submodule in `models/vecmap/`. This can be achieved with `git submodule update --init --recursive`.
 
@@ -31,7 +31,7 @@ Run `python predict.py [context-free|context-dependent] <dataset-folder>` to mak
 
 Run `python evaluate.py <experiment-folder>` to evaluate a prediction. Add the flag `--subfolders` to look in subfolders of `<experiment-folder>` instead. This will store the results in the file `<experiment-folder>_results.csv`.
 
-Run `python ensemble.py <context-free-experiment-folder> <context-dependent-experiment-folder` to make an ensemble prediction. This will create a corresponding experiment folder in `experiments`. Add the flag `--plot_all` to create a graph with evaluations of all possible weights, which is stored in the experiment folder.
+Run `python ensemble.py <context-free-experiment-folder> <context-dependent-experiment-folder>` to make an ensemble prediction. This will create a corresponding experiment folder in `experiments`. Add the flag `--plot_all` to create a graph with evaluations of all possible weights, which is stored in the experiment folder.
 
 To learn more about any script and its parameters, run `python <script>.py -h`.
 
