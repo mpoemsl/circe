@@ -2,9 +2,10 @@
 
 A Classification-Informed Representation Comparison Ensemble for Lexical Semantic Change Detection (LSCD).  
 
-This repository contains code and predictions for the winning contribution to SemEval-2020 Task 1 (Subtask 2). 
+This repository contains code and predictions for the winning contribution to SemEval-2020 Task 1 (Subtask 2).  
 
-Models, experiments and results are described in the upcoming system description paper "CIRCE at SemEval-2020 Task 1: Ensembling Context-Free and Context-Dependent Word Representations".
+Models, experiments and results are described in the upcoming system description paper  
+"CIRCE at SemEval-2020 Task 1: Ensembling Context-Free and Context-Dependent Word Representations".
 
 ## Overview
 
@@ -27,7 +28,7 @@ If you want to make predictions, you will need to complement the testsets in `da
 
 ## Usage
 
-Run `python predict.py [context-free|context-dependent] <dataset-folder>` to make a prediction. This will create a corresponding experiment folder in `experiments`.
+Run `python predict.py [context-free|context-dependent] <dataset-folder>` to make a prediction. This will create a corresponding experiment folder in `experiments/`.
 
 Run `python evaluate.py <experiment-folder>` to evaluate a prediction. Add the flag `--subfolders` to look in subfolders of `<experiment-folder>` instead. This will store the results in the file `<experiment-folder>_results.csv`.
 
