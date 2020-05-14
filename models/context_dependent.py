@@ -27,7 +27,7 @@ def make_classification_dataset(dataset_dir, experiment_dir):
         sents_c2 = fh.read().splitlines()
 
     # detemine thresholds
-    n_samples_per_class = np.around(min(len(sents_c1), len(sents_c2)), decimals=-3)
+    n_samples_per_class = (min(len(sents_c1), len(sents_c2)) // 10_000) * 10_000
     n_train = int(n_samples_per_class * 2 * 0.8)
     n_test = n_samples_per_class * 2 - n_train
 
