@@ -2,7 +2,7 @@
 
 This repository contains code and predictions for the winning contribution to Subtask 2 of [SemEval-2020 Task 1: Unsupervised Lexical Semantic Change Detection](https://competitions.codalab.org/competitions/20948).
 
-Models, experiments and results are described in the upcoming system description paper [CIRCE at SemEval-2020 Task 1: Ensembling Context-Free and Context-Dependent Word Representations](https://arxiv.org/abs/2005.06602). 
+Models, experiments and results are described in the system description paper [CIRCE at SemEval-2020 Task 1: Ensembling Context-Free and Context-Dependent Word Representations](https://www.aclweb.org/anthology/2020.semeval-1.21/). 
 
 CIRCE is short for Classification-Informed Representation Comparison Ensemble.
 
@@ -38,3 +38,19 @@ To learn more about any script and its parameters, run `python <script>.py -h`.
 ## Acknowledgements
 
 This code builds on the great work of the developers and maintainers of the libraries [Word2Vec](https://github.com/danielfrg/word2vec), [VecMap](https://github.com/artetxem/vecmap) and [Transformers](https://github.com/huggingface/transformers).
+
+## Citation
+
+```
+@inproceedings{pomsl2020circe,
+    title = "{CIRCE} at {S}em{E}val-2020 Task 1: Ensembling Context-Free and Context-Dependent Word Representations",
+    author = {P{\"o}msl, Martin  and Lyapin, Roman},
+    booktitle = "Proceedings of the Fourteenth Workshop on Semantic Evaluation",
+    month = dec,
+    year = "2020",
+    address = "Barcelona (online)",
+    publisher = "International Committee for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/2020.semeval-1.21",
+    pages = "180--186"
+}
+```
